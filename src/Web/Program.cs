@@ -14,6 +14,7 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
 {
     var options = sp.GetRequiredService<IOptions<NotificationsOptions>>().Value;
     client.BaseAddress = new Uri(options.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
 });
 
 builder.Services.AddControllersWithViews();
