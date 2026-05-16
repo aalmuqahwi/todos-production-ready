@@ -1,6 +1,13 @@
 @{
     Layout = null;
+    var reason = Context.Request.Query["reason"].ToString();
+    var message = reason switch
+    {
+        "timeout" => "The notifications service did not respond in time. Please try again.",
+        "unavailable" => "The notifications service is temporarily unavailable. Please try again shortly.",
+        _ => "Something went wrong. Please try again.",
+    };
 }
 
-<p>Something went wrong. Please try again.</p>
+<p>@message</p>
 <a href="/">Back to home</a>

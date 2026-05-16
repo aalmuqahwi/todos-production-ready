@@ -1,4 +1,7 @@
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
+
+using Polly;
 
 using Todos.Web.Handlers;
 using Todos.Web.Options;
@@ -11,11 +14,25 @@ builder.Services
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<NotificationsResilienceHandler>();
+
 builder.Services.AddHttpClient("Notifications", (sp, client) =>
 {
     var options = sp.GetRequiredService<IOptions<NotificationsOptions>>().Value;
     client.BaseAddress = new Uri(options.BaseUrl);
     client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+})
+.AddHttpMessageHandler<NotificationsResilienceHandler>()
+.AddResilienceHandler("notifications-circuit-breaker", resilienceBuilder =>
+{
+    resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+    {
+        SamplingDuration = TimeSpan.FromSeconds(30),
+        FailureRatio = 0.5,
+        MinimumThroughput = 3,
+        BreakDuration = TimeSpan.FromSeconds(15),
+    });
 });
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

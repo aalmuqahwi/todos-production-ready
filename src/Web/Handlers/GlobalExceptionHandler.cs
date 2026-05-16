@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 
+using Todos.Web.Exceptions;
+
 namespace Todos.Web.Handlers;
 
 /// <summary>Handles unhandled exceptions by redirecting to the error page.</summary>
@@ -17,14 +19,26 @@ public class GlobalExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "An unhandled exception occurred.");
-
         if (context.RequestAborted.IsCancellationRequested)
         {
             return ValueTask.FromResult(false);
         }
 
-        context.Response.Redirect("/Error");
+        if (exception is NotificationsTimeoutException)
+        {
+            _logger.LogWarning(exception, "Notifications service timed out.");
+            context.Response.Redirect("/Error?reason=timeout");
+        }
+        else if (exception is NotificationsUnavailableException)
+        {
+            _logger.LogWarning(exception, "Notifications service circuit breaker is open.");
+            context.Response.Redirect("/Error?reason=unavailable");
+        }
+        else
+        {
+            _logger.LogError(exception, "An unhandled exception occurred.");
+            context.Response.Redirect("/Error");
+        }
 
         return ValueTask.FromResult(true);
     }

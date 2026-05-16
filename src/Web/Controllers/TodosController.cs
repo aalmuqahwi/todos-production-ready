@@ -30,21 +30,11 @@ public class TodosController : Controller
     {
         HttpClient client = _httpClientFactory.CreateClient("Notifications");
 
-        try
-        {
-            await client.PostAsJsonAsync(
-                "/notifications",
-                new { TodoId = _nextId, Message = $"Todo '{title}' was created." },
-                cancellationToken);
-        }
-        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return Problem(
-                detail: "The Notifications service did not respond in time.",
-                title: "Gateway Timeout",
-                statusCode: StatusCodes.Status504GatewayTimeout);
-        }
-        
+        await client.PostAsJsonAsync(
+            "/notifications",
+            new { TodoId = _nextId, Message = $"Todo '{title}' was created." },
+            cancellationToken);
+
         Todo todo = new(_nextId++, title);
         _todos.Add(todo);
 
