@@ -235,6 +235,9 @@ _pkginfo.txt
 # but keep track of directories ending in .cache
 !?*.[Cc]ache/
 
+# C# Dev Kit project system cache (vscode-dotnettools)
+*.lscache
+
 # Others
 ClientBin/
 ~$*
