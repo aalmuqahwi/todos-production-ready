@@ -44,15 +44,19 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
 **Controller action**
 
 ```csharp
-public async Task<IActionResult> Index(CancellationToken cancellationToken)
+public async Task<IActionResult> Create(string title, CancellationToken cancellationToken)
 {
+    Todo todo = new(_nextId++, title);
+    _todos.Add(todo);
+
     HttpClient client = _httpClientFactory.CreateClient("Notifications");
 
     try
     {
-        HttpResponseMessage response = await client.GetAsync("/notifications", cancellationToken);
-        string content = await response.Content.ReadAsStringAsync(cancellationToken);
-        return Content(content, "application/json");
+        await client.PostAsJsonAsync(
+            "/notifications",
+            new { TodoId = todo.Id, Message = $"Todo '{todo.Title}' was created." },
+            cancellationToken);
     }
     catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
     {
@@ -61,6 +65,8 @@ public async Task<IActionResult> Index(CancellationToken cancellationToken)
             title: "Gateway Timeout",
             statusCode: StatusCodes.Status504GatewayTimeout);
     }
+
+    return RedirectToAction(nameof(Index));
 }
 ```
 
