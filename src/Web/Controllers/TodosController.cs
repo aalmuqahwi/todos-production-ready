@@ -29,7 +29,6 @@ public class TodosController : Controller
     public async Task<IActionResult> Create(string title, CancellationToken cancellationToken)
     {
         Todo todo = new(_nextId++, title);
-        _todos.Add(todo);
 
         HttpClient client = _httpClientFactory.CreateClient("Notifications");
 
@@ -47,6 +46,8 @@ public class TodosController : Controller
                 title: "Gateway Timeout",
                 statusCode: StatusCodes.Status504GatewayTimeout);
         }
+
+        _todos.Add(todo);
 
         return RedirectToAction(nameof(Index));
     }
