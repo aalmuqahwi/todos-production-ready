@@ -1,0 +1,25 @@
+@model List<Todos.Web.Models.Todo>
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todos</title>
+</head>
+<body>
+    <h1>Todos</h1>
+
+    <form method="post" action="/todos">
+        <input name="title" placeholder="New todo" required />
+        <button type="submit">Add</button>
+    </form>
+
+    <ul>
+        @foreach (Todos.Web.Models.Todo todo in Model)
+        {
+            <li>@todo.Title</li>
+        }
+    </ul>
+</body>
+</html>
