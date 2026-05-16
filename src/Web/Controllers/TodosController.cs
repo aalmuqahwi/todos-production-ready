@@ -28,15 +28,13 @@ public class TodosController : Controller
     [HttpPost("/todos")]
     public async Task<IActionResult> Create(string title, CancellationToken cancellationToken)
     {
-        Todo todo = new(_nextId++, title);
-
         HttpClient client = _httpClientFactory.CreateClient("Notifications");
 
         try
         {
             await client.PostAsJsonAsync(
                 "/notifications",
-                new { TodoId = todo.Id, Message = $"Todo '{todo.Title}' was created." },
+                new { TodoId = _nextId, Message = $"Todo '{title}' was created." },
                 cancellationToken);
         }
         catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -46,7 +44,8 @@ public class TodosController : Controller
                 title: "Gateway Timeout",
                 statusCode: StatusCodes.Status504GatewayTimeout);
         }
-
+        
+        Todo todo = new(_nextId++, title);
         _todos.Add(todo);
 
         return RedirectToAction(nameof(Index));
