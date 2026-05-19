@@ -24,8 +24,18 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
     client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
 })
 .AddHttpMessageHandler<NotificationsResilienceHandler>()
-.AddResilienceHandler("notifications-circuit-breaker", resilienceBuilder =>
+.AddResilienceHandler("notifications-pipeline", resilienceBuilder =>
 {
+    resilienceBuilder.AddRetry(new HttpRetryStrategyOptions
+    {
+        MaxRetryAttempts = 3,
+        BackoffType = DelayBackoffType.Exponential,
+        UseJitter = true,
+        ShouldHandle = static args => ValueTask.FromResult(
+            args.Outcome.Exception is HttpRequestException ||
+            (args.Outcome.Result is { IsSuccessStatusCode: false } r && (int)r.StatusCode >= 500))
+    });
+
     resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
     {
         SamplingDuration = TimeSpan.FromSeconds(30),

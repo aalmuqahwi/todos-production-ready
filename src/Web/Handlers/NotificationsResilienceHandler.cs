@@ -30,5 +30,9 @@ public class NotificationsResilienceHandler : DelegatingHandler
         {
             throw new NotificationsUnavailableException();
         }
+        catch (HttpRequestException)
+        {
+            throw new NotificationsUnavailableException();
+        }
     }
 }
