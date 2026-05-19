@@ -17,11 +17,11 @@ A system that starts successfully but fails later is harder to diagnose and wors
 Each service defines a typed options class with data annotation constraints:
 
 ```csharp
-public sealed class NotificationsOptions
+public class NotificationsOptions
 {
     [Required]
     [Url]
-    public string BaseUrl { get; init; } = string.Empty;
+    public string BaseUrl { get; set; } = string.Empty;
 }
 ```
 
