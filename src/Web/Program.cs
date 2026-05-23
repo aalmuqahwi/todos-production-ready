@@ -26,6 +26,8 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
 .AddHttpMessageHandler<NotificationsResilienceHandler>()
 .AddResilienceHandler("notifications-pipeline", resilienceBuilder =>
 {
+    resilienceBuilder.AddConcurrencyLimiter(10);
+
     resilienceBuilder.AddRetry(new HttpRetryStrategyOptions
     {
         MaxRetryAttempts = 3,

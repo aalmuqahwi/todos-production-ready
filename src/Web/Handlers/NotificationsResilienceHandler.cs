@@ -1,4 +1,7 @@
+using System.Threading.RateLimiting;
+
 using Polly.CircuitBreaker;
+using Polly.RateLimiting;
 
 using Todos.Web.Exceptions;
 
@@ -27,6 +30,10 @@ public class NotificationsResilienceHandler : DelegatingHandler
             throw new NotificationsTimeoutException();
         }
         catch (BrokenCircuitException)
+        {
+            throw new NotificationsUnavailableException();
+        }
+        catch (RateLimiterRejectedException)
         {
             throw new NotificationsUnavailableException();
         }
