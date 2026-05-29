@@ -30,26 +30,45 @@ public class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;
 
-    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) =>
+    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
+    {
         _logger = logger;
+    }
 
     public ValueTask<bool> TryHandleAsync(
         HttpContext context,
         Exception exception,
         CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "An unhandled exception occurred.");
-
         if (context.RequestAborted.IsCancellationRequested)
+        {
             return ValueTask.FromResult(false);
+        }
 
-        context.Response.Redirect("/Error");
+        if (exception is NotificationsTimeoutException)
+        {
+            _logger.LogWarning(exception, "Notifications service timed out.");
+            context.Response.Redirect("/Error?reason=timeout");
+        }
+        else if (exception is NotificationsUnavailableException)
+        {
+            _logger.LogWarning(exception, "Notifications service circuit breaker is open.");
+            context.Response.Redirect("/Error?reason=unavailable");
+        }
+        else
+        {
+            _logger.LogError(exception, "An unhandled exception occurred.");
+            context.Response.Redirect("/Error");
+        }
+
         return ValueTask.FromResult(true);
     }
 }
 ```
 
 Returning `false` when the request is already aborted means ASP.NET Core keeps looking for another handler — which is fine here, since the client is gone and there's nothing useful to write.
+
+Known downstream exceptions (`NotificationsTimeoutException`, `NotificationsUnavailableException`) are logged as warnings and routed to a specific error query-string so the error page can show a contextual message. Everything else falls through to the generic error path.
 
 **`Controllers/ErrorController.cs`** routes `/Error` to a Razor view so the error page goes through the normal MVC pipeline.
 

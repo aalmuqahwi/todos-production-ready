@@ -81,6 +81,8 @@ builder.Services.AddHttpClient("Notifications", ...)
     .AddHttpMessageHandler<NotificationsResilienceHandler>()
     .AddResilienceHandler("notifications-pipeline", resilienceBuilder =>
     {
+        resilienceBuilder.AddConcurrencyLimiter(10);
+
         resilienceBuilder.AddRetry(new HttpRetryStrategyOptions
         {
             MaxRetryAttempts = 3,
@@ -109,11 +111,14 @@ After all retry attempts are exhausted, a final `HttpRequestException` propagate
 catch (BrokenCircuitException)
     => throw new NotificationsUnavailableException();
 
+catch (RateLimiterRejectedException)
+    => throw new NotificationsUnavailableException();
+
 catch (HttpRequestException)
     => throw new NotificationsUnavailableException();
 ```
 
-Both map to the same domain exception because from the caller's perspective the result is the same: the Notifications service could not be reached.
+All three map to the same domain exception because from the caller's perspective the result is the same: the Notifications service could not be reached. `BrokenCircuitException` comes before `HttpRequestException` as a defensive convention — specific before general.
 
 ## Gotchas
 

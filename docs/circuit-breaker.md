@@ -28,13 +28,17 @@ The boundary is the HTTP call from `Todos.Web` to `Todos.Notifications`. The cir
 
 ### Resilience pipeline
 
-Configured in `Program.cs` using `Microsoft.Extensions.Http.Resilience`:
+Configured in `Program.cs` using `Microsoft.Extensions.Http.Resilience`. The circuit breaker is the innermost strategy in the shared pipeline, after the concurrency limiter and retry:
 
 ```csharp
 builder.Services.AddHttpClient("Notifications", ...)
     .AddHttpMessageHandler<NotificationsResilienceHandler>()
-    .AddResilienceHandler("notifications-circuit-breaker", resilienceBuilder =>
+    .AddResilienceHandler("notifications-pipeline", resilienceBuilder =>
     {
+        resilienceBuilder.AddConcurrencyLimiter(10);
+
+        resilienceBuilder.AddRetry(new HttpRetryStrategyOptions { ... });
+
         resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
         {
             SamplingDuration = TimeSpan.FromSeconds(30),
@@ -57,9 +61,15 @@ catch (TaskCanceledException) when (!requestAborted)
 
 catch (BrokenCircuitException)
     => throw new NotificationsUnavailableException();
+
+catch (RateLimiterRejectedException)
+    => throw new NotificationsUnavailableException();
+
+catch (HttpRequestException)
+    => throw new NotificationsUnavailableException();
 ```
 
-The handler uses `IHttpContextAccessor` to read `RequestAborted` — this is how it distinguishes a timeout from a user abort, which both surface as `TaskCanceledException`.
+The handler uses `IHttpContextAccessor` to read `RequestAborted` — this is how it distinguishes a timeout from a user abort, which both surface as `TaskCanceledException`. `BrokenCircuitException` is caught before `HttpRequestException` because specific exceptions come before general ones.
 
 ### Custom exceptions
 

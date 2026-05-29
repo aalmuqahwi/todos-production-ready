@@ -46,35 +46,34 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
 ```csharp
 public async Task<IActionResult> Create(string title, CancellationToken cancellationToken)
 {
-    Todo todo = new(_nextId++, title);
-    _todos.Add(todo);
-
     HttpClient client = _httpClientFactory.CreateClient("Notifications");
 
-    try
-    {
-        await client.PostAsJsonAsync(
-            "/notifications",
-            new { TodoId = todo.Id, Message = $"Todo '{todo.Title}' was created." },
-            cancellationToken);
-    }
-    catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
-    {
-        return Problem(
-            detail: "The Notifications service did not respond in time.",
-            title: "Gateway Timeout",
-            statusCode: StatusCodes.Status504GatewayTimeout);
-    }
+    await client.PostAsJsonAsync(
+        "/notifications",
+        new { TodoId = _nextId, Message = $"Todo '{title}' was created." },
+        cancellationToken);
+
+    Todo todo = new(_nextId++, title);
+    _todos.Add(todo);
 
     return RedirectToAction(nameof(Index));
 }
 ```
 
+The controller has no `try/catch`. Error handling — including timeout detection — lives in `NotificationsResilienceHandler`. The controller calls `PostAsJsonAsync` and moves on; any exception propagates to the global handler.
+
 ## CancellationToken
 
-Both a timeout and a user abort surface as `TaskCanceledException`. Without the `when` guard you can't tell them apart — and it matters, because they mean different things. A timeout means the downstream service is slow or hung. A user abort means the client gave up and the response would go nowhere anyway.
+Both a timeout and a user abort surface as `TaskCanceledException`. Without a `when` guard you can't tell them apart — and it matters, because they mean different things. A timeout means the downstream service is slow or hung. A user abort means the client gave up and the response would go nowhere anyway.
 
-The `when (!cancellationToken.IsCancellationRequested)` guard reads: if the request token hasn't fired, the user didn't abort — so the timeout must have. Return 504. If the request token did fire, let the exception propagate. ASP.NET Core handles it cleanly — the connection is already gone.
+In `NotificationsResilienceHandler`, the guard reads:
+
+```csharp
+catch (TaskCanceledException) when (!(_httpContextAccessor.HttpContext?.RequestAborted.IsCancellationRequested ?? false))
+    => throw new NotificationsTimeoutException();
+```
+
+If the request `CancellationToken` hasn't fired, the user didn't abort — so the timeout fired. Throw `NotificationsTimeoutException`. If the request token did fire, let the `TaskCanceledException` propagate. ASP.NET Core handles it cleanly — the connection is already gone.
 
 ## Gotchas
 
@@ -88,4 +87,4 @@ Timeout isn't an HTTP concept — it's a boundary concept. It applies anywhere y
 
 ## What's next
 
-Timeout bounds the wait. It doesn't handle repeated failures (Retry) or stop the caller from hammering a struggling service (Circuit Breaker). The `catch` block in the controller is also temporary — once those patterns are in place, error handling moves to a delegating handler and controllers stay clean.
+Timeout bounds the wait. It doesn't handle repeated failures (Retry) or stop the caller from hammering a struggling service (Circuit Breaker). Those patterns are covered next and share the same resilience pipeline.

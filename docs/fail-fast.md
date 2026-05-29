@@ -22,6 +22,9 @@ public class NotificationsOptions
     [Required]
     [Url]
     public string BaseUrl { get; set; } = string.Empty;
+
+    [Range(1, 30)]
+    public int TimeoutSeconds { get; set; } = 5;
 }
 ```
 
@@ -42,6 +45,7 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
 {
     var options = sp.GetRequiredService<IOptions<NotificationsOptions>>().Value;
     client.BaseAddress = new Uri(options.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
 });
 ```
 
@@ -55,7 +59,6 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
 
 ## What's deferred
 
-- HttpClient timeout — fail fast at the request level, not just at startup
 - Dependency reachability — startup health checks
 - Input validation — reject malformed user input at the model/controller layer
 
