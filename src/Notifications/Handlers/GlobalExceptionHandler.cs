@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Todos.Notifications.Handlers;
 
 /// <summary>Handles unhandled exceptions by returning a 500 ProblemDetails response.</summary>
+// docs/global-exception-handling.md
 public class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;

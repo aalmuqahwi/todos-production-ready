@@ -8,6 +8,7 @@ using Todos.Web.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// docs/fail-fast.md
 builder.Services
     .AddOptions<NotificationsOptions>()
     .BindConfiguration("Notifications")
@@ -21,14 +22,14 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
 {
     var options = sp.GetRequiredService<IOptions<NotificationsOptions>>().Value;
     client.BaseAddress = new Uri(options.BaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds); // docs/timeout.md
 })
 .AddHttpMessageHandler<NotificationsResilienceHandler>()
 .AddResilienceHandler("notifications-pipeline", resilienceBuilder =>
 {
-    resilienceBuilder.AddConcurrencyLimiter(10);
+    resilienceBuilder.AddConcurrencyLimiter(10); // docs/bulkhead.md
 
-    resilienceBuilder.AddRetry(new HttpRetryStrategyOptions
+    resilienceBuilder.AddRetry(new HttpRetryStrategyOptions // docs/retry.md
     {
         MaxRetryAttempts = 3,
         BackoffType = DelayBackoffType.Exponential,
@@ -38,7 +39,7 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
             (args.Outcome.Result is { IsSuccessStatusCode: false } r && (int)r.StatusCode >= 500))
     });
 
-    resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+    resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions // docs/circuit-breaker.md
     {
         SamplingDuration = TimeSpan.FromSeconds(30),
         FailureRatio = 0.5,
@@ -47,6 +48,7 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
     });
 });
 
+// docs/global-exception-handling.md
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddControllersWithViews();

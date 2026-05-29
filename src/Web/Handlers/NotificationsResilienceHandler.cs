@@ -27,19 +27,19 @@ public class NotificationsResilienceHandler : DelegatingHandler
         }
         catch (TaskCanceledException) when (!(_httpContextAccessor.HttpContext?.RequestAborted.IsCancellationRequested ?? false))
         {
-            throw new NotificationsTimeoutException();
+            throw new NotificationsTimeoutException(); // docs/timeout.md
         }
         catch (BrokenCircuitException)
         {
-            throw new NotificationsUnavailableException();
+            throw new NotificationsUnavailableException(); // docs/circuit-breaker.md
         }
         catch (RateLimiterRejectedException)
         {
-            throw new NotificationsUnavailableException();
+            throw new NotificationsUnavailableException(); // docs/bulkhead.md
         }
         catch (HttpRequestException)
         {
-            throw new NotificationsUnavailableException();
+            throw new NotificationsUnavailableException(); // docs/retry.md
         }
     }
 }
