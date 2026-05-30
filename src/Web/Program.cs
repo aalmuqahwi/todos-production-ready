@@ -3,10 +3,14 @@ using Microsoft.Extensions.Options;
 
 using Polly;
 
+using Serilog;
+
 using Todos.Web.Handlers;
 using Todos.Web.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, _, config) => config.ReadFrom.Configuration(context.Configuration)); // docs/steady-state.md
 
 // docs/fail-fast.md
 builder.Services

@@ -1,7 +1,11 @@
+using Serilog;
+
 using Todos.Notifications.Handlers;
 using Todos.Notifications.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, _, config) => config.ReadFrom.Configuration(context.Configuration)); // docs/steady-state.md
 
 // docs/fail-fast.md
 builder.Services
