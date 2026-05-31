@@ -52,6 +52,24 @@ The resilience pipeline is the interesting part. To see it in action:
 1. Run either service for a while and check the `logs/` directory
 2. Log files rotate daily and older files are deleted automatically — no manual cleanup needed
 
+**Let It Crash**
+
+> **Demo only.** `NotificationSummaryService`, `SimulateFailure`, and `BroadCatch` exist purely to make
+> this behaviour observable in a local run. Do not carry any of them into production code.
+
+**Part 1 — the wrong way (broad catch)**
+1. In `src/Notifications/appsettings.Development.json` set `SimulateFailure: true` and `BroadCatch: true`
+2. Start both services
+3. Add a todo — the background service fires immediately, hits the simulated failure, and swallows it
+4. Observe the Todos.Notifications terminal: the process keeps running, the count never logs, only a vague `"Something went wrong. Continuing."` appears — no signal that anything is broken
+
+**Part 2 — the right way (let it crash)**
+1. Keep `SimulateFailure: true`, set `BroadCatch: false`
+2. Restart Todos.Notifications
+3. Add a todo — the background service fires and throws
+4. Observe the host stop with a clear `InvalidOperationException: Summary state is corrupted.` in the terminal — an unambiguous signal
+5. Set `SimulateFailure: false`, restart, add another todo — the service logs the count cleanly
+
 ## Stability Patterns
 
 - [x] Timeouts — [`docs/timeout.md`](docs/timeout.md)
@@ -59,7 +77,7 @@ The resilience pipeline is the interesting part. To see it in action:
 - [x] Bulkheads — [`docs/bulkhead.md`](docs/bulkhead.md)
 - [x] Steady State — [`docs/steady-state.md`](docs/steady-state.md)
 - [x] Fail Fast — [`docs/fail-fast.md`](docs/fail-fast.md)
-- [ ] Let It Crash
+- [x] Let It Crash — [`docs/let-it-crash.md`](docs/let-it-crash.md)
 - [ ] Handshaking
 - [ ] Test Harnesses
 - [ ] Decoupling Middleware

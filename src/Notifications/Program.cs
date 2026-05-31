@@ -2,6 +2,7 @@ using Serilog;
 
 using Todos.Notifications.Handlers;
 using Todos.Notifications.Options;
+using Todos.Notifications.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,11 @@ builder.Services
     .BindConfiguration("Service")
     .ValidateDataAnnotations()
     .ValidateOnStart();
+
+// docs/let-it-crash.md
+builder.Services.AddSingleton<NotificationCounter>();
+builder.Services.AddOptions<NotificationSummaryOptions>().BindConfiguration("NotificationSummaryService");
+builder.Services.AddHostedService<NotificationSummaryService>();
 
 // docs/global-exception-handling.md
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
