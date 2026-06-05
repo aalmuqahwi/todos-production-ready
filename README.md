@@ -78,7 +78,7 @@ The resilience pipeline is the interesting part. To see it in action:
 - [x] Steady State — [`docs/steady-state.md`](docs/steady-state.md)
 - [x] Fail Fast — [`docs/fail-fast.md`](docs/fail-fast.md)
 - [x] Let It Crash — [`docs/let-it-crash.md`](docs/let-it-crash.md)
-- [ ] Handshaking
+- [x] Handshaking — [`docs/handshaking.md`](docs/handshaking.md)
 - [ ] Test Harnesses
 - [ ] Decoupling Middleware
 - [ ] Shed Load
