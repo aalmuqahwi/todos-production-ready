@@ -8,6 +8,7 @@ using Todos.Web.Exceptions;
 namespace Todos.Web.Handlers;
 
 /// <summary>Translates resilience exceptions from the Notifications HTTP pipeline into domain exceptions.</summary>
+// docs/test-harnesses.md
 public class NotificationsResilienceHandler : DelegatingHandler
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todos.Web", "src\Web\Todos.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todos.Notifications", "src\Notifications\Todos.Notifications.csproj", "{1EA911D8-8FEA-4B3C-8CF3-CC1B4E02763E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Todos.TestHarness", "src\TestHarness\Todos.TestHarness.csproj", "{BBFC86E0-C800-4A1D-865D-6B442E795122}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,9 +28,14 @@ Global
 		{1EA911D8-8FEA-4B3C-8CF3-CC1B4E02763E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1EA911D8-8FEA-4B3C-8CF3-CC1B4E02763E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1EA911D8-8FEA-4B3C-8CF3-CC1B4E02763E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBFC86E0-C800-4A1D-865D-6B442E795122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBFC86E0-C800-4A1D-865D-6B442E795122}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBFC86E0-C800-4A1D-865D-6B442E795122}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBFC86E0-C800-4A1D-865D-6B442E795122}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{61BD6022-CC04-4F12-A659-FE43F80F9543} = {C8067595-F330-466C-A2D2-E934D08E6B3B}
 		{1EA911D8-8FEA-4B3C-8CF3-CC1B4E02763E} = {C8067595-F330-466C-A2D2-E934D08E6B3B}
+		{BBFC86E0-C800-4A1D-865D-6B442E795122} = {C8067595-F330-466C-A2D2-E934D08E6B3B}
 	EndGlobalSection
 EndGlobal

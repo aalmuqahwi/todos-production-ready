@@ -26,11 +26,17 @@ dotnet run
 # Terminal 2 — Web app
 cd src/Web
 dotnet run
+
+# Terminal 3 (optional) — Test Harness, replaces Todos.Notifications
+cd src/TestHarness
+dotnet run
 ```
 
 Open http://localhost:5000. Add a todo — Todos.Web calls Todos.Notifications in the background.
 
 ## Trying the failure scenarios
+
+There are two ways to trigger these failures: stop or disable the real service (below), or use the test harness to set the exact failure mode on demand. Both work — the harness gives you more control without tearing down running processes.
 
 The resilience pipeline is the interesting part. To see it in action:
 
@@ -70,6 +76,48 @@ The resilience pipeline is the interesting part. To see it in action:
 4. Observe the host stop with a clear `InvalidOperationException: Summary state is corrupted.` in the terminal — an unambiguous signal
 5. Set `SimulateFailure: false`, restart, add another todo — the service logs the count cleanly
 
+## Using the test harness
+
+`Todos.TestHarness` is a fake HTTP server that replaces `Todos.Notifications` during manual testing. `Todos.Web` already points at `http://localhost:5002` by default — just run the harness instead of the real service and flip its behaviour at any time without restarting.
+
+**Check the current mode**
+
+```bash
+curl http://localhost:5002/harness/behavior
+```
+
+**ok** — baseline; every POST to `/notifications` returns 200 immediately.
+
+```bash
+curl -s -X POST http://localhost:5002/harness/behavior \
+     -H "Content-Type: application/json" \
+     -d '{"mode":"ok"}'
+```
+
+**delay** — responds after `delaySeconds`. Set it above `TimeoutSeconds` in `appsettings.Development.json` to reliably trigger the timeout and watch retries exhaust.
+
+```bash
+curl -s -X POST http://localhost:5002/harness/behavior \
+     -H "Content-Type: application/json" \
+     -d '{"mode":"delay","delaySeconds":10}'
+```
+
+**error** — returns HTTP 500 on every call. Send several requests in a row to trip the circuit breaker.
+
+```bash
+curl -s -X POST http://localhost:5002/harness/behavior \
+     -H "Content-Type: application/json" \
+     -d '{"mode":"error"}'
+```
+
+**hang** — accepts the connection but never responds. Same observable effect as a long delay but exercises the read-timeout path rather than the write path.
+
+```bash
+curl -s -X POST http://localhost:5002/harness/behavior \
+     -H "Content-Type: application/json" \
+     -d '{"mode":"hang"}'
+```
+
 ## Stability Patterns
 
 - [x] Timeouts — [`docs/timeout.md`](docs/timeout.md)
@@ -79,7 +127,7 @@ The resilience pipeline is the interesting part. To see it in action:
 - [x] Fail Fast — [`docs/fail-fast.md`](docs/fail-fast.md)
 - [x] Let It Crash — [`docs/let-it-crash.md`](docs/let-it-crash.md)
 - [x] Handshaking — [`docs/handshaking.md`](docs/handshaking.md)
-- [ ] Test Harnesses
+- [x] Test Harnesses
 - [ ] Decoupling Middleware
 - [ ] Shed Load
 - [ ] Create Back Pressure

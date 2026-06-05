@@ -29,7 +29,7 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
     client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds); // docs/timeout.md
 })
 .AddHttpMessageHandler<NotificationsResilienceHandler>()
-.AddResilienceHandler("notifications-pipeline", resilienceBuilder =>
+.AddResilienceHandler("notifications-pipeline", resilienceBuilder => // docs/test-harnesses.md
 {
     resilienceBuilder.AddConcurrencyLimiter(10); // docs/bulkhead.md
 
