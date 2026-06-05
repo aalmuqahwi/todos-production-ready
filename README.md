@@ -36,7 +36,7 @@ Open http://localhost:5000. Add a todo — Todos.Web calls Todos.Notifications i
 
 ## Trying the failure scenarios
 
-There are two ways to trigger these failures: stop or disable the real service (below), or use the test harness to set the exact failure mode on demand. Both work — the harness gives you more control without tearing down running processes.
+> **Two ways to trigger failures:** stop or disable the real service (below), or use the [test harness](docs/test-harnesses.md) to set the exact failure mode on demand. Both work — the harness gives you more control without tearing down running processes.
 
 The resilience pipeline is the interesting part. To see it in action:
 
@@ -127,7 +127,7 @@ curl -s -X POST http://localhost:5002/harness/behavior \
 - [x] Fail Fast — [`docs/fail-fast.md`](docs/fail-fast.md)
 - [x] Let It Crash — [`docs/let-it-crash.md`](docs/let-it-crash.md)
 - [x] Handshaking — [`docs/handshaking.md`](docs/handshaking.md)
-- [x] Test Harnesses
+- [x] Test Harnesses — [`docs/test-harnesses.md`](docs/test-harnesses.md)
 - [ ] Decoupling Middleware
 - [ ] Shed Load
 - [ ] Create Back Pressure
