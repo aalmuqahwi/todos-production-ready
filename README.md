@@ -128,7 +128,7 @@ curl -s -X POST http://localhost:5002/harness/behavior \
 - [x] Let It Crash — [`docs/let-it-crash.md`](docs/let-it-crash.md)
 - [x] Handshaking — [`docs/handshaking.md`](docs/handshaking.md)
 - [x] Test Harnesses — [`docs/test-harnesses.md`](docs/test-harnesses.md)
-- [ ] Decoupling Middleware
+- [x] Decoupling Middleware — [`docs/decoupling-middleware.md`](docs/decoupling-middleware.md)
 - [ ] Shed Load
 - [ ] Create Back Pressure
 - [ ] Governor
