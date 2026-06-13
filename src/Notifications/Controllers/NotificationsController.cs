@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 using Todos.Notifications.Models;
 using Todos.Notifications.Services;
@@ -19,6 +20,7 @@ public class NotificationsController : ControllerBase
 
     /// <summary>Processes an incoming notification.</summary>
     [HttpPost]
+    [EnableRateLimiting("notifications")]
     public IActionResult Create(NotificationRequest request)
     {
         _counter.Increment();

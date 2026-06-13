@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
 
 using Todos.Notifications.Handlers;
@@ -20,6 +21,19 @@ builder.Services.AddSingleton<NotificationCounter>();
 builder.Services.AddOptions<NotificationSummaryOptions>().BindConfiguration("NotificationSummaryService");
 builder.Services.AddHostedService<NotificationSummaryService>();
 
+// docs/shed-load.md
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("notifications", limiter =>
+    {
+        limiter.Window = TimeSpan.FromSeconds(1);
+        limiter.PermitLimit = 10;
+        limiter.QueueLimit = 0;
+    });
+
+    options.RejectionStatusCode = StatusCodes.Status503ServiceUnavailable;
+});
+
 // docs/global-exception-handling.md
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -27,6 +41,7 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+app.UseRateLimiter();
 app.UseExceptionHandler();
 app.MapControllers();
 

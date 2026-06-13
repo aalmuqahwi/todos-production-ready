@@ -76,6 +76,18 @@ The resilience pipeline is the interesting part. To see it in action:
 4. Observe the host stop with a clear `InvalidOperationException: Summary state is corrupted.` in the terminal — an unambiguous signal
 5. Set `SimulateFailure: false`, restart, add another todo — the service logs the count cleanly
 
+**Shed Load**
+1. With both services running, flood `/notifications` with more than 10 requests in a second:
+   ```bash
+   for i in $(seq 1 25); do \
+     curl -s -o /dev/null -w "%{http_code}\n" \
+       http://localhost:5002/notifications \
+       -X POST -H "Content-Type: application/json" -d '{}' & \
+   done; wait
+   ```
+2. Observe a mix of 200 and 503 responses — exactly 10 succeed per window, the rest are shed immediately with no queuing delay
+3. Wait a second and send a single request — the window resets and it returns 200 again
+
 ## Using the test harness
 
 `Todos.TestHarness` is a fake HTTP server that replaces `Todos.Notifications` during manual testing. `Todos.Web` already points at `http://localhost:5002` by default — just run the harness instead of the real service and flip its behaviour at any time without restarting.
@@ -129,6 +141,6 @@ curl -s -X POST http://localhost:5002/harness/behavior \
 - [x] Handshaking — [`docs/handshaking.md`](docs/handshaking.md)
 - [x] Test Harnesses — [`docs/test-harnesses.md`](docs/test-harnesses.md)
 - [x] Decoupling Middleware — [`docs/decoupling-middleware.md`](docs/decoupling-middleware.md)
-- [ ] Shed Load
+- [x] Shed Load — [`docs/shed-load.md`](docs/shed-load.md)
 - [ ] Create Back Pressure
 - [ ] Governor
