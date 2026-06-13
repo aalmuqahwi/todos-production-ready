@@ -22,6 +22,7 @@ builder.Services.AddOptions<NotificationSummaryOptions>().BindConfiguration("Not
 builder.Services.AddHostedService<NotificationSummaryService>();
 
 // docs/shed-load.md
+// docs/create-back-pressure.md
 builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("notifications", limiter =>
@@ -32,6 +33,13 @@ builder.Services.AddRateLimiter(options =>
     });
 
     options.RejectionStatusCode = StatusCodes.Status503ServiceUnavailable;
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.Headers.RetryAfter = "1";
+        context.HttpContext.Response.ContentType = "text/plain";
+        await context.HttpContext.Response.WriteAsync("Service busy. Retry after 1 second.", cancellationToken);
+    };
 });
 
 // docs/global-exception-handling.md

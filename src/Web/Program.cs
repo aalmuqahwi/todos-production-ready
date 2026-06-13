@@ -33,14 +33,25 @@ builder.Services.AddHttpClient("Notifications", (sp, client) =>
 {
     resilienceBuilder.AddConcurrencyLimiter(10); // docs/bulkhead.md
 
-    resilienceBuilder.AddRetry(new HttpRetryStrategyOptions // docs/retry.md
+    resilienceBuilder.AddRetry(new HttpRetryStrategyOptions // docs/retry.md, docs/create-back-pressure.md
     {
         MaxRetryAttempts = 3,
         BackoffType = DelayBackoffType.Exponential,
         UseJitter = true,
         ShouldHandle = static args => ValueTask.FromResult(
             args.Outcome.Exception is HttpRequestException ||
-            (args.Outcome.Result is { IsSuccessStatusCode: false } r && (int)r.StatusCode >= 500))
+            (args.Outcome.Result is { IsSuccessStatusCode: false } r && (int)r.StatusCode >= 500)),
+        DelayGenerator = static args =>
+        {
+            if (args.Outcome.Result is { StatusCode: System.Net.HttpStatusCode.ServiceUnavailable } response &&
+                response.Headers.TryGetValues("Retry-After", out var values) &&
+                int.TryParse(values.FirstOrDefault(), out var seconds))
+            {
+                return ValueTask.FromResult<TimeSpan?>(TimeSpan.FromSeconds(seconds));
+            }
+
+            return ValueTask.FromResult<TimeSpan?>(null);
+        }
     });
 
     resilienceBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions // docs/circuit-breaker.md

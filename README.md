@@ -88,6 +88,22 @@ The resilience pipeline is the interesting part. To see it in action:
 2. Observe a mix of 200 and 503 responses — exactly 10 succeed per window, the rest are shed immediately with no queuing delay
 3. Wait a second and send a single request — the window resets and it returns 200 again
 
+**Create Back Pressure**
+1. With both services running, send a request that triggers shedding and inspect the response headers:
+   ```bash
+   for i in $(seq 1 15); do \
+     curl -s -D - -o /dev/null \
+       http://localhost:5002/notifications \
+       -X POST -H "Content-Type: application/json" -d '{}' & \
+   done; wait
+   ```
+2. On shed responses, observe `retry-after: 1` in the headers alongside the 503 status — the service signals exactly when the next window opens
+3. To see the header in isolation on a single shed request, first exhaust the window with 10 fast requests, then:
+   ```bash
+   curl -si -X POST http://localhost:5002/notifications \
+     -H "Content-Type: application/json" -d '{}' | grep -E "HTTP/|retry-after|content-type"
+   ```
+
 ## Using the test harness
 
 `Todos.TestHarness` is a fake HTTP server that replaces `Todos.Notifications` during manual testing. `Todos.Web` already points at `http://localhost:5002` by default — just run the harness instead of the real service and flip its behaviour at any time without restarting.
@@ -142,5 +158,5 @@ curl -s -X POST http://localhost:5002/harness/behavior \
 - [x] Test Harnesses — [`docs/test-harnesses.md`](docs/test-harnesses.md)
 - [x] Decoupling Middleware — [`docs/decoupling-middleware.md`](docs/decoupling-middleware.md)
 - [x] Shed Load — [`docs/shed-load.md`](docs/shed-load.md)
-- [ ] Create Back Pressure
+- [x] Create Back Pressure — [`docs/create-back-pressure.md`](docs/create-back-pressure.md)
 - [ ] Governor
